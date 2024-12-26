@@ -350,7 +350,6 @@ void QuadTree::test_quadtree()
 
     std::cout << nearestAns.quads.size() << std::endl;
 
-    int i = 0;
     // Traverse in reverse
     for (int i = nearestAns.quads.size() - 1; i >= 0; i--)
     {
