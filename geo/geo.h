@@ -55,8 +55,6 @@ namespace g_geometry
         d_line(const std::vector<g_point> &points, int roadufi) : g_line(points), roadufi{roadufi} {};
     };
 
-    bool intersects(const g_segment &s1, const g_segment &s2);
-    bool intersects(const g_boundary &b1, const g_boundary &b2);
     bool intersects(const g_segment &s, const g_aligned_segment &as);
     bool intersects(const g_segment &s, const g_boundary &b);
     double distance(const double d1, const double d2, const bool is_vertical);
