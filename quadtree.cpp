@@ -11,7 +11,7 @@
 #include <sstream>
 #include <fstream>
 
-// #define TEST_STOPS
+#define TEST_STOPS
 #define TEST_SINGLE_POINT
 
 using FrontierElement = std::pair<QuadNode *, double>;
@@ -348,30 +348,38 @@ void QuadTree::test_quadtree()
     std::setprecision(17) << nearestAns.segment.p2.y << ") " << "with distance: " <<
     std::setprecision(17) << nearestAns.distance << " " << "roadufi: " << nearestAns.segment.roadufi << std::endl;
 
+    std::cout << nearestAns.quads.size() << std::endl;
+
+    int i = 0;
     // Traverse in reverse
-    for (auto it = nearestAns.quads.begin(); it != quads.end(); ++it)
+    for (int i = nearestAns.quads.size() - 1; i >= 0; i--)
     {
-        QuadNode *quad = *it;
-        std::cout << "Quad: " 
+        QuadNode *quad = nearestAns.quads[i];
+        // QuadNode *quad = *it;
+        std::cout << "Quad: " << i 
+        << "[["
         << std::setprecision(17) 
         << quad->boundary.x_min
-        << " " 
+        << "," 
         << std::setprecision(17) 
         << quad->boundary.y_min
-        << " " 
+        << "],[" 
         << std::setprecision(17) 
         << quad->boundary.x_max
-        << " " 
+        << "," 
         << std::setprecision(17) 
         << quad->boundary.y_max
-        << " " 
+        << "]] "
+        << " Segment count: " 
         << quad->segments.size()
-        << " " 
+        << " Is divided: "
         << quad->divided
-        << " " << quad->segment_count << std::endl;
+        << " Inserted segment count: " 
+        << quad->segment_count << std::endl;
 
         if (quad->segments.size() > 0)
         {
+            std::cout << "Segments: \n";
             for (auto seg : quad->segments)
             {
                 std::cout << "Segment: " 
