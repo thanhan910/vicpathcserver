@@ -13,7 +13,7 @@ private:
 public:
     QuadTree();
 
-    std::vector<DSegment> get_segments();
+    std::vector<d_segment> get_segments();
     
     std::tuple<double, double, double, double> get_min_max_coords();
 
@@ -21,7 +21,7 @@ public:
 
     void gen_quadtree();
 
-    AnswerNearestSegment find_nearest_segment(const bg_point &p);
+    AnswerNearestSegment find_nearest_segment(const g_point &p);
     
     void test_quadtree();
 };

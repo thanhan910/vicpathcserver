@@ -31,6 +31,10 @@ namespace g_geometry
     {
         double x_min, y_min, x_max, y_max;
         bool containsPoint(const g_point &p) const;
+        double width() const { return x_max - x_min; };
+        double height() const { return y_max - y_min; };
+        double x_mid() const { return (x_min + x_max) / 2; };
+        double y_mid() const { return (y_min + y_max) / 2; };
     };
 
     struct g_line

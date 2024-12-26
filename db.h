@@ -5,7 +5,7 @@
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
 #include <mongocxx/uri.hpp>
-#include <mongocxx/stdx.hpp>
+// #include <mongocxx/stdx.hpp>
 #include <mongocxx/pool.hpp>
 #include <mongocxx/database.hpp>
 #include <mongocxx/collection.hpp>

@@ -70,7 +70,11 @@ namespace g_geometry {
 
     bool intersects(const g_segment &s, const g_boundary &b)
     {
-        return false;
+        g_aligned_segment as1{b.x_min, b.y_min, b.x_min, b.y_max, true};
+        g_aligned_segment as2{b.x_min, b.y_min, b.x_max, b.y_min, false};
+        g_aligned_segment as3{b.x_max, b.y_min, b.x_max, b.y_max, true};
+        g_aligned_segment as4{b.x_min, b.y_max, b.x_max, b.y_max, false};
+        return intersects(s, as1) || intersects(s, as2) || intersects(s, as3) || intersects(s, as4);
     }
 
     double distance(const double d1, const double d2, const bool is_vertical)
