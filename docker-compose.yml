@@ -1,0 +1,31 @@
+# version: '3'
+
+services:
+  vicpathc-dev:
+    container_name: vicpathc-dev-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vicpathc-dev-image
+    volumes:
+      - .:/workspace   # Mount the current directory to /workspace in the container
+      - ./local:/data  # Mount the /local directory to /data in the container
+      - /workspace/.vscode-server:/root/.vscode-server  # Persist VS Code server data
+    environment:
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - MONGO_HOST=host.docker.internal
+      - MONGO_PORT=27017
+    ports:
+      # - "5432:5432"   # Expose PostgreSQL port
+      # - "27017:27017" # Expose MongoDB port
+      - "8080:8080"   # Expose port 8080 for the dev container
+    command: sleep infinity
+    # stdin_open: true  # Equivalent to `-i` to keep STDIN open
+    # tty: true         # Equivalent to `-t` to allocate a pseudo-TTY
+
+# Build and run the container using the following command:
+# docker-compose up --build
+
+# Open a terminal inside the container using the following command:
+# docker exec -it vicpathc-dev-container /bin/bash
