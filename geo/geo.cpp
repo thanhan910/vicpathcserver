@@ -59,17 +59,21 @@ namespace g_geometry {
         if (as.is_vertical)
         {
             double line_intersect_y = s.p1.y + delta_y * (as.x1 - s.p1.x) / delta_x;
-            return (line_intersect_y >= as.y1 && line_intersect_y <= as.y2);
+            return (line_intersect_y >= as.y1 && line_intersect_y <= as.y2) || (line_intersect_y <= as.y1 && line_intersect_y >= as.y2);
         }
         else
         {
             double line_intersect_x = s.p1.x + delta_x * (as.y1 - s.p1.y) / delta_y;
-            return (line_intersect_x >= as.x1 && line_intersect_x <= as.x2);
+            return (line_intersect_x >= as.x1 && line_intersect_x <= as.x2) || (line_intersect_x <= as.x1 && line_intersect_x >= as.x2);
         }
     }
 
     bool intersects(const g_segment &s, const g_boundary &b)
     {
+        if (b.containsPoint(s.p1) || b.containsPoint(s.p2))
+        {
+            return true;
+        }
         g_aligned_segment as1{b.x_min, b.y_min, b.x_min, b.y_max, true};
         g_aligned_segment as2{b.x_min, b.y_min, b.x_max, b.y_min, false};
         g_aligned_segment as3{b.x_max, b.y_min, b.x_max, b.y_max, true};

@@ -5,8 +5,6 @@ QuadNode::QuadNode(g_boundary boundary, int capacity) : boundary(boundary), capa
 
 bool QuadNode::insert(d_segment segment)
 {
-    // if (!(boundary.intersects_segment(segment)))
-    //     return false;
     if (!gg::intersects(segment, boundary))
         return false;
 
