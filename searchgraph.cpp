@@ -373,6 +373,9 @@ void SearchGraph::build()
     std::cout << "Size of points_coords: " << sizeof(points_coords) << " bytes" << std::endl;
 
     quadtree.gen_quadtree();
+
+    // Insert segments: time difference = 123052[ms]
+    // Total time building search graph = 136156[ms]
 }
 
 void test_searchgraph()

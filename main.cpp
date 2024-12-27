@@ -5,18 +5,45 @@
 #include <cmath>
 #include <algorithm>
 
+#define RUN_SERVER
+
+#ifdef TEST_QUADTREE
 #include "quadtree.h"
+#endif
+#ifdef TEST_SEARCHGRAPH
 #include "searchgraph.h"
+#endif
+#ifdef RUN_SERVER
+#include "server.h"
+#endif
 
 int main()
 {
-    // QuadTree quadtree;
-    // quadtree.gen_quadtree();
-    // quadtree.test_quadtree();
+#ifdef TEST_QUADTREE
+    QuadTree quadtree;
+    quadtree.gen_quadtree();
+    quadtree.test_quadtree();
+#endif
 
-    // SearchGraph searchgraph = SearchGraph();
-    // searchgraph.build();
+#ifdef TEST_SEARCHGRAPH
     test_searchgraph();
+#endif
+
+#ifdef RUN_SERVER
+    const std::string address = "0.0.0.0";
+    const unsigned short port = 8080;
+
+    try
+    {
+        Server server(address, port);
+        server.run();
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+#endif
 
     return 0;
 }
