@@ -112,7 +112,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
             return a.pos < b.pos;
         }
     });
-    if (road_direction == DIRECTION_FORWARD || road_direction == DIRECTION_BOTH)
+    if (direction_code == DIRECTION_FORWARD || direction_code == DIRECTION_BOTH)
     {
         g_line newline0;
         for (int j = 0; j <= points_on_line[0].pos; j++)
@@ -120,7 +120,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
             newline0.points.push_back(line.points[j]);
         }
         newline0.points.push_back(points_on_line[0].point);
-        next_steps[from_ufi].push_back({points_on_line[0].pointufi, newline0});
+        next_steps[from_ufi].push_back({points_on_line[0].pointufi, roadufi, newline0});
         
         for (int i = 0; i < points_on_line.size() - 1; i++)
         {
@@ -131,7 +131,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
                 newline.points.push_back(line.points[j]);
             }
             newline.points.push_back(points_on_line[i + 1].point);
-            next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, newline});
+            next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, roadufi, newline});
         }
 
         g_line newline1;
@@ -139,9 +139,9 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
         {
             newline1.points.push_back(line.points[j]);
         }
-        next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({to_ufi, newline1});
+        next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({to_ufi, roadufi, newline1});
     }
-    if (road_direction == DIRECTION_REVERSE || road_direction == DIRECTION_BOTH)
+    if (direction_code == DIRECTION_REVERSE || direction_code == DIRECTION_BOTH)
     {
         g_line newline0;
         for (int j = 0; j <= points_on_line[0].pos; j++)
@@ -149,7 +149,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
             newline0.points.push_back(line.points[j]);
         }
         newline0.points.push_back(points_on_line[0].point);
-        next_steps[to_ufi].push_back({points_on_line[0].pointufi, newline0});
+        next_steps[to_ufi].push_back({points_on_line[0].pointufi, roadufi, newline0});
         
         for (int i = 0; i < points_on_line.size() - 1; i++)
         {
@@ -160,7 +160,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
                 newline.points.push_back(line.points[j]);
             }
             newline.points.push_back(points_on_line[i + 1].point);
-            next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, newline});
+            next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, roadufi, newline});
         }
 
         g_line newline1;
@@ -168,7 +168,7 @@ next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_o
         {
             newline1.points.push_back(line.points[j]);
         }
-        next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({from_ufi, newline1});
+        next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({from_ufi, roadufi, newline1});
     }
     return next_steps;
 }

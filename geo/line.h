@@ -1,3 +1,4 @@
+#pragma once
 
 #include "geo.h"
 #include <map>
@@ -21,6 +22,7 @@ struct d_point_on_line
 struct next_step
 {
     int next_point_ufi = 0;
+    int roadufi;
     g_line line;
 };
 
@@ -30,10 +32,16 @@ using next_step_map = std::map<int, std::vector<next_step>>;
 #define DIRECTION_REVERSE "R"
 #define DIRECTION_BOTH "B"
 
+struct d_line_simple {
+    int roadufi;
+    g_line line;
+};
+
 struct d_line
 {
     int roadufi;
-    std::string road_direction;
+    std::string ezi_road_name_label;
+    std::string direction_code;
     int from_ufi;
     int to_ufi;
     g_line line;

@@ -1,6 +1,10 @@
 #include "geo.h"
 
 #include <cmath>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
+
 
 g_point g_segment::midpoint() const
 {
@@ -22,7 +26,11 @@ bool g_aligned_segment::containsPoint(const g_point &p) const
 bool g_boundary::containsPoint(const g_point &p) const
 {
     return p.x >= x_min && p.x <= x_max && p.y >= y_min && p.y <= y_max;
-}
+};
+
+
+namespace bg = boost::geometry;
+using bg_point = bg::model::point<double, 2, bg::cs::geographic<bg::degree>>;
 
 namespace geo {
 
@@ -96,11 +104,11 @@ namespace geo {
 
     double distance(const g_point &p1, const g_point &p2, std::string strategy)
     {
-        if (strategy == "euclidean")
+        if (strategy == STRATEGY_GEODESIC)
         {
-            return std::sqrt(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2));
+            return bg::distance(bg_point{p1.x, p1.y}, bg_point{p2.x, p2.y}) * 1000.0; // Convert to meters
         }
-        else if (strategy == "manhattan")
+        else if (strategy == STRATEGY_MANHATTAN)
         {
             return std::abs(p1.x - p2.x) + std::abs(p1.y - p2.y);
         }

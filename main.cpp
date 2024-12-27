@@ -6,13 +6,17 @@
 #include <algorithm>
 
 #include "quadtree.h"
-
+#include "searchgraph.h"
 
 int main()
 {
-    QuadTree quadtree;
-    quadtree.gen_quadtree();
-    quadtree.test_quadtree();
+    // QuadTree quadtree;
+    // quadtree.gen_quadtree();
+    // quadtree.test_quadtree();
+
+    // SearchGraph searchgraph = SearchGraph();
+    // searchgraph.build();
+    test_searchgraph();
 
     return 0;
 }
@@ -21,4 +25,4 @@ int main()
 // g++ search-path-server.cpp -o local-server.exe $(pkg-config --cflags --libs libpqxx libpq libmongocxx-static) -I/vcpkg/installed/x64-linux/include -L/vcpkg/installed/x64-linux/lib && ./local-server.exe
 // http://localhost:8080/nearestsegment?x=144.866&y=-37.751275
 // http://localhost:8080/searchpath?x1=144.9631&y1=-37.8136&x2=145.0458&y2=-37.8768
-// cd /workspace/server && rm -rf build && mkdir build && cd build && cmake .. && make && ./local-server
+// cd /workspace && rm -rf build && mkdir build && cd build && cmake .. && make && ./local-server
