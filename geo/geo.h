@@ -60,6 +60,14 @@ namespace geo {
     double closestDistance(const g_point &p, const g_segment &s, std::string strategy);
 }
 
+struct g_line {
+    std::vector<g_point> points;
+    g_line() = default;
+    g_line(const std::vector<g_point> &points) : points{points} {};
+    g_line(const std::string &wkt);
+    double length() const;
+};
+
 struct d_point_on_line
 {
     int pointufi;
@@ -74,14 +82,6 @@ struct next_step
 };
 using next_step_list = std::vector<next_step>;
 using next_step_map = std::map<int, next_step_list>;
-
-struct g_line {
-    std::vector<g_point> points;
-    g_line() = default;
-    g_line(const std::vector<g_point> &points) : points{points} {};
-    g_line(const std::string &wkt);
-    double length() const;
-};
 
 #define DIRECTION_FORWARD "F"
 #define DIRECTION_REVERSE "R"

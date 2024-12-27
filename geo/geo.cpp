@@ -294,7 +294,7 @@ std::vector<g_line> parseWKTtoMultiLineString(const std::string &wkt)
 #else
             double x, y;
             point_stream >> x >> y;
-            lineString.points.emplace_back(x, y);
+            lineString.points.push_back({x, y});
 #endif
         }
 
@@ -316,7 +316,7 @@ g_line::g_line(const std::string &wkt)
         std::istringstream point_stream(point);
         double x, y;
         point_stream >> x >> y;
-        points.emplace_back(x, y);
+        points.push_back({x, y});
     }
 }
 
