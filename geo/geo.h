@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include <map>
 
 struct g_point
 {
@@ -59,40 +58,3 @@ namespace geo {
     double projectionDistance(const g_point &p, const g_segment &s, std::string strategy);
     double closestDistance(const g_point &p, const g_segment &s, std::string strategy);
 }
-
-struct g_line {
-    std::vector<g_point> points;
-    g_line() = default;
-    g_line(const std::vector<g_point> &points) : points{points} {};
-    g_line(const std::string &wkt);
-    double length() const;
-};
-
-struct d_point_on_line
-{
-    int pointufi;
-    g_point point;
-    int pos;
-};
-
-struct next_step
-{
-    int next_point_ufi = 0;
-    g_line line;
-};
-using next_step_list = std::vector<next_step>;
-using next_step_map = std::map<int, next_step_list>;
-
-#define DIRECTION_FORWARD "F"
-#define DIRECTION_REVERSE "R"
-#define DIRECTION_BOTH "B"
-
-struct d_line
-{
-    int roadufi;
-    int from_ufi;
-    int to_ufi;
-    std::string road_direction;
-    g_line line;
-    next_step_map generate_next_steps(std::vector<d_point_on_line> &points_on_line);
-};
