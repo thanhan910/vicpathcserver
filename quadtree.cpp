@@ -194,7 +194,7 @@ AnswerNearestSegment QuadTree::find_nearest_segment(const g_point &p)
                 {
                     continue;
                 }
-                double child_boundary_distance = gg::distance(p, child->boundary);
+                double child_boundary_distance = geo::distance(p, child->boundary, STRATEGY_SPHERICAL);
                 frontier.push({child, child_boundary_distance});
             }
         }
@@ -203,8 +203,8 @@ AnswerNearestSegment QuadTree::find_nearest_segment(const g_point &p)
             for (const d_segment &segment : quad->segments)
             {
                 // Point closest = segment.nearestPoint(p);
-                g_point closestPoint = gg::closestPoint(p, segment);
-                double distance = gg::distance(p, closestPoint);
+                g_point closestPoint = geo::closestPoint(p, segment, STRATEGY_SPHERICAL);
+                double distance = geo::distance(p, closestPoint, STRATEGY_SPHERICAL);
                 if (distance < min_distance)
                 {
                     min_distance = distance;

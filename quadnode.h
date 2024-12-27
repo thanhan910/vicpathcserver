@@ -15,11 +15,7 @@
 // #include <boost/geometry/geometries/box.hpp>
 // #include <boost/geometry/geometries/geometries.hpp>
 // namespace bg = boost::geometry;
-namespace gg = g_geometry;
-typedef gg::g_point g_point;
-typedef gg::g_segment g_segment;
-typedef gg::g_boundary g_boundary;
-typedef gg::d_segment d_segment;
+
 // typedef bg::model::point<double, 2, bg::cs::geographic<bg::degree>> bg_point;
 // typedef bg::model::segment<bg_point> bg_segment;
 // typedef bg::model::box<bg_point> bg_box;

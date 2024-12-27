@@ -5,7 +5,7 @@ QuadNode::QuadNode(g_boundary boundary, int capacity) : boundary(boundary), capa
 
 bool QuadNode::insert(d_segment segment)
 {
-    if (!gg::intersects(segment, boundary))
+    if (!geo::intersects(segment, boundary))
         return false;
 
     if (!divided)
@@ -130,8 +130,8 @@ std::vector<QuadNode *> QuadNode::nearestSegment(const g_point &point, double &m
         for (const d_segment &segment : segments)
         {
             // Point closest = segment.nearestPoint(point);
-            g_point closestPoint = gg::closestPoint(point, segment);
-            double distance = gg::distance(point, closestPoint);
+        g_point closestPoint = geo::closestPoint(point, segment, STRATEGY_SPHERICAL);
+            double distance = geo::distance(point, closestPoint, STRATEGY_SPHERICAL);
             if (distance < minDistance)
             {
                 nearestPoint = closestPoint;

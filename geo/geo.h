@@ -47,16 +47,18 @@ struct d_segment : g_segment
 #define STRATEGY_GEODESIC "geodesic"
 #define STRATEGY_MANHATTAN "manhattan"
 
-bool intersects(const g_segment &s, const g_aligned_segment &as);
-bool intersects(const g_segment &s, const g_boundary &b);
-double distance(const g_point &p, const double d, const bool is_vertical, std::string strategy);
-double distance(const g_point &p1, const g_point &p2, std::string strategy);
-double distance(const g_point &p, const g_boundary &b, std::string strategy);
+namespace geo {
+    bool intersects(const g_segment &s, const g_aligned_segment &as);
+    bool intersects(const g_segment &s, const g_boundary &b);
+    double distance(const g_point &p, const double d, const bool is_vertical, std::string strategy);
+    double distance(const g_point &p1, const g_point &p2, std::string strategy);
+    double distance(const g_point &p, const g_boundary &b, std::string strategy);
 
-g_point projectionPoint(const g_point &p, const g_segment &s, std::string strategy);
-g_point closestPoint(const g_point &p, const g_segment &s, std::string strategy);
-double projectionDistance(const g_point &p, const g_segment &s, std::string strategy);
-double closestDistance(const g_point &p, const g_segment &s, std::string strategy);
+    g_point projectionPoint(const g_point &p, const g_segment &s, std::string strategy);
+    g_point closestPoint(const g_point &p, const g_segment &s, std::string strategy);
+    double projectionDistance(const g_point &p, const g_segment &s, std::string strategy);
+    double closestDistance(const g_point &p, const g_segment &s, std::string strategy);
+}
 
 struct d_point_on_line
 {
