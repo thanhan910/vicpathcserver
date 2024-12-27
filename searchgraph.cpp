@@ -159,6 +159,8 @@ std::pair<next_step_map, PointMap> SearchGraph::gen_extra_info(nearest_road_info
     std::vector<d_point_on_line> points_on_line;
     points_on_line.push_back({START_POINT_UFI, start.closest_point, start.road_ufi, start.nearest_segment.pos});
     points_on_line.push_back({GOAL_POINT_UFI, goal.closest_point, goal.road_ufi, goal.nearest_segment.pos});
+    points_coords[START_POINT_UFI] = start.closest_point;
+    points_coords[GOAL_POINT_UFI] = goal.closest_point;
     
     get_roads_info({start.road_ufi, goal.road_ufi});
 
@@ -167,6 +169,15 @@ std::pair<next_step_map, PointMap> SearchGraph::gen_extra_info(nearest_road_info
     lines.push_back(roads_info_map[goal.road_ufi]);
 
     next_step_map special_neighbors = generate_next_steps(lines, points_on_line);
+
+    for (const auto &p : special_neighbors)
+    {
+        std::cout << "Point: " << p.first << std::endl;
+        for (const auto &n : p.second)
+        {
+            std::cout << "  Neighbor: " << n.next_point_ufi << ", Road: " << n.roadufi << ", Name: " << roads_info_map[n.roadufi].ezi_road_name_label << ", Direction: " << roads_info_map[n.roadufi].direction_code << ", Length: " << n.line.length() << std::endl;
+        }
+    }
 
     PointMap skip_neighbors = {
         {start.from_ufi, start.to_ufi},
@@ -205,7 +216,7 @@ std::pair<std::vector<d_line_simple>, RoadLength> SearchGraph::astar(PointUFI st
     {
         auto [_, cost, current_pointufi, current_path] = frontier.top();
         frontier.pop();
-        std::cout << "Current path size: " << current_path.size() << std::endl;
+        // std::cout << "Current path size: " << current_path.size() << std::endl;
 
         if (current_pointufi == goal)
         {
