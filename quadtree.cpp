@@ -156,6 +156,8 @@ void QuadTree::gen_quadtree()
     end = std::chrono::steady_clock::now();
 
     std::cout << "Insert segments: time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+    // Insert segments: time difference = 97965[ms]
+    // Total time: 150s
 }
 
 AnswerNearestSegment QuadTree::find_nearest_segment(const g_point &p)
