@@ -1,6 +1,8 @@
 #include "geo.h"
 
 #include <cmath>
+#include <sstream>
+#include <algorithm>
 
 namespace g_geometry {
     g_point g_segment::midpoint() const
@@ -81,17 +83,34 @@ namespace g_geometry {
         return intersects(s, as1) || intersects(s, as2) || intersects(s, as3) || intersects(s, as4);
     }
 
-    double distance(const double d1, const double d2, const bool is_vertical)
+    double distance(const g_point &p, const double d, const bool is_vertical, std::string strategy)
     {
-        return std::abs(d1 - d2);
+        if (is_vertical)
+        {
+            return std::abs(p.x - d);
+        }
+        else
+        {
+            return std::abs(p.y - d);
+        }
     }
 
-    double distance(const g_point &p1, const g_point &p2)
+    double distance(const g_point &p1, const g_point &p2, std::string strategy)
     {
-        return std::sqrt(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2));
+        if (strategy == "euclidean")
+        {
+            return std::sqrt(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2));
+        }
+        else if (strategy == "manhattan")
+        {
+            return std::abs(p1.x - p2.x) + std::abs(p1.y - p2.y);
+        }
+        else { // Default to euclidean
+            return std::sqrt(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2));
+        }
     }
 
-    double distance(const g_point &p, const g_boundary &b)
+    double distance(const g_point &p, const g_boundary &b, std::string strategy)
     {
         bool ge_x_min = (p.x >= b.x_min);
         bool le_x_max = (p.x <= b.x_max);
@@ -104,40 +123,40 @@ namespace g_geometry {
         }
         if (ge_x_min && le_x_max && !ge_y_min)
         {
-            return distance(p.y, b.y_min, true);
+            return distance(p, b.y_min, true, strategy);
         }
         if (ge_x_min && le_x_max && !le_y_max)
         {
-            return distance(p.y, b.y_max, true);
+            return distance(p, b.y_max, true, strategy);
         }
         if (ge_y_min && le_y_max && !ge_x_min)
         {
-            return distance(p.x, b.x_min, false);
+            return distance(p, b.x_min, false, strategy);
         }
         if (ge_y_min && le_y_max && !le_x_max)
         {
-            return distance(p.x, b.x_max, false);
+            return distance(p, b.x_max, false, strategy);
         }
         if (!ge_x_min && !ge_y_min)
         {
-            return distance(p, g_point{b.x_min, b.y_min});
+            return distance(p, g_point{b.x_min, b.y_min}, strategy);
         }
         if (!ge_x_min && !le_y_max)
         {
-            return distance(p, g_point{b.x_min, b.y_max});
+            return distance(p, g_point{b.x_min, b.y_max}, strategy);
         }
         if (!le_x_max && !ge_y_min)
         {
-            return distance(p, g_point{b.x_max, b.y_min});
+            return distance(p, g_point{b.x_max, b.y_min}, strategy);
         }
         if (!le_x_max && !le_y_max)
         {
-            return distance(p, g_point{b.x_max, b.y_max});
+            return distance(p, g_point{b.x_max, b.y_max}, strategy);
         }
         return -1.0;
     }
     
-    g_point projectionPoint(const g_point &p, const g_segment &s)
+    g_point projectionPoint(const g_point &p, const g_segment &s, std::string strategy)
     {
         // Project p onto the line segment, clamp to endpoints
         double delta_p_p1_x = p.x - s.p1.x;
@@ -168,9 +187,9 @@ namespace g_geometry {
         return {xx, yy};
     }
 
-    g_point closestPoint(const g_point &p, const g_segment &s)
+    g_point closestPoint(const g_point &p, const g_segment &s, std::string strategy)
     {
-        g_point projection = projectionPoint(p, s);
+        g_point projection = projectionPoint(p, s, strategy);
         
         // Check if the closest point is on the line segment
         double x_min = std::min(s.p1.x, s.p2.x);
@@ -208,14 +227,186 @@ namespace g_geometry {
             }
         }
     }
-    double projectionDistance(const g_point &p, const g_segment &s)
+
+    double projectionDistance(const g_point &p, const g_segment &s, std::string strategy)
     {
-        g_point projection = projectionPoint(p, s);
-        return distance(p, projection);
+        g_point projection = projectionPoint(p, s, strategy);
+        return distance(p, projection, strategy);
     }
-    double closestDistance(const g_point &p, const g_segment &s)
+
+    double closestDistance(const g_point &p, const g_segment &s, std::string strategy)
     {
-        g_point closest = closestPoint(p, s);
-        return distance(p, closest);
+        g_point closest = closestPoint(p, s, strategy);
+        return distance(p, closest, strategy);
+    }
+
+    std::vector<g_line> parseWKTtoMultiLineString(const std::string &wkt)
+    {
+        std::vector<g_line> multiLineString;
+
+        // Remove the "MULTILINESTRING(" and ")" from the WKT string
+        std::string stripped_wkt = wkt.substr(16, wkt.size() - 17);
+        std::istringstream lines_stream(stripped_wkt);
+        std::string line;
+
+        while (std::getline(lines_stream, line, ')'))
+        {
+            // Skip any commas at the beginning of each line string segment
+            if (!line.empty() && line[0] == ',')
+                line = line.substr(2);
+
+            g_line lineString;
+            std::istringstream points_stream(line.substr(1)); // Remove the leading '('
+            std::vector<std::string> lineStr;
+            // lineStr.push_back(line);
+            // Split the line by comma
+            line = line.substr(1);
+            for (int i = 0; i < line.size(); i++)
+            {
+                if (line[i] == ',')
+                {
+                    lineStr.push_back(line.substr(0, i));
+                    line = line.substr(i + 1);
+                    i = 0;
+                }
+                else if (line[i] == ' ')
+                {
+                    lineStr.push_back(line.substr(0, i));
+                    line = line.substr(i + 1);
+                    i = 0;
+                }
+            }
+            lineStr.push_back(line);
+
+            std::string point;
+            while (std::getline(points_stream, point, ','))
+            {
+                // Split the point into two strings by space
+                std::istringstream point_stream(point);
+    #ifdef USE_STRING
+                std::string x_str, y_str;
+                std::getline(point_stream, x_str, ' ');
+                std::getline(point_stream, y_str, ' ');
+                lineString.emplace_back(x_str, y_str);
+    #else
+                double x, y;
+                point_stream >> x >> y;
+                lineString.points.emplace_back(x, y);
+    #endif
+            }
+
+            multiLineString.push_back(lineString);
+        }
+        return multiLineString;
+    }
+
+    g_line::g_line(const std::string &wkt)
+    {
+        // Remove the "MULTILINESTRING((" and "))" from the WKT string
+        std::string stripped_wkt = wkt.substr(17, wkt.size() - 19);
+        std::istringstream points_stream(stripped_wkt);
+        points.clear();
+        std::string point;
+        while (std::getline(points_stream, point, ','))
+        {
+            // Split the point into two strings by space
+            std::istringstream point_stream(point);
+            double x, y;
+            point_stream >> x >> y;
+            points.emplace_back(x, y);
+        }
+    }
+
+    double g_line::length() const
+    {
+        double length = 0.0;
+        for (int i = 0; i < points.size() - 1; i++)
+        {
+            length += distance(points[i], points[i + 1], STRATEGY_GEODESIC);
+        }
+        return length;
+    }
+
+    next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_on_line)
+    {
+        next_step_map next_steps;
+        std::sort(points_on_line.begin(), points_on_line.end(), [this](const d_point_on_line &a, const d_point_on_line &b) {
+            if (a.pos == b.pos)
+            {
+                g_point& p1 = line.points[a.pos];
+                g_point& p2 = line.points[a.pos + 1];
+                if (p1.x == p2.x)
+                {
+                    return (p1.y < p2.y) ? a.point.y < b.point.y : a.point.y > b.point.y;
+                }
+                else
+                {
+                    return (p1.x < p2.x) ? a.point.x < b.point.x : a.point.x > b.point.x;
+                }
+            }
+            else
+            {
+                return a.pos < b.pos;
+            }
+        });
+        if (road_direction == DIRECTION_FORWARD || road_direction == DIRECTION_BOTH)
+        {
+            g_line newline0;
+            for (int j = 0; j <= points_on_line[0].pos; j++)
+            {
+                newline0.points.push_back(line.points[j]);
+            }
+            newline0.points.push_back(points_on_line[0].point);
+            next_steps[from_ufi].push_back({points_on_line[0].pointufi, newline0});
+            
+            for (int i = 0; i < points_on_line.size() - 1; i++)
+            {
+                g_line newline;
+                newline.points.push_back(points_on_line[i].point);
+                for (int j = points_on_line[i].pos + 1; j <= points_on_line[i + 1].pos; j++)
+                {
+                    newline.points.push_back(line.points[j]);
+                }
+                newline.points.push_back(points_on_line[i + 1].point);
+                next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, newline});
+            }
+
+            g_line newline1;
+            for (int j = points_on_line[points_on_line.size() - 1].pos; j < line.points.size(); j++)
+            {
+                newline1.points.push_back(line.points[j]);
+            }
+            next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({to_ufi, newline1});
+        }
+        if (road_direction == DIRECTION_REVERSE || road_direction == DIRECTION_BOTH)
+        {
+            g_line newline0;
+            for (int j = 0; j <= points_on_line[0].pos; j++)
+            {
+                newline0.points.push_back(line.points[j]);
+            }
+            newline0.points.push_back(points_on_line[0].point);
+            next_steps[to_ufi].push_back({points_on_line[0].pointufi, newline0});
+            
+            for (int i = 0; i < points_on_line.size() - 1; i++)
+            {
+                g_line newline;
+                newline.points.push_back(points_on_line[i].point);
+                for (int j = points_on_line[i].pos + 1; j <= points_on_line[i + 1].pos; j++)
+                {
+                    newline.points.push_back(line.points[j]);
+                }
+                newline.points.push_back(points_on_line[i + 1].point);
+                next_steps[points_on_line[i].pointufi].push_back({points_on_line[i + 1].pointufi, newline});
+            }
+
+            g_line newline1;
+            for (int j = points_on_line[points_on_line.size() - 1].pos; j < line.points.size(); j++)
+            {
+                newline1.points.push_back(line.points[j]);
+            }
+            next_steps[points_on_line[points_on_line.size() - 1].pointufi].push_back({from_ufi, newline1});
+        }
+        return next_steps;
     }
 }
