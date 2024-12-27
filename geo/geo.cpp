@@ -106,7 +106,7 @@ namespace geo {
     {
         if (strategy == STRATEGY_GEODESIC)
         {
-            return bg::distance(bg_point{p1.x, p1.y}, bg_point{p2.x, p2.y}) * 1000.0; // Convert to meters
+            return bg::distance(bg_point{p1.x, p1.y}, bg_point{p2.x, p2.y});
         }
         else if (strategy == STRATEGY_MANHATTAN)
         {

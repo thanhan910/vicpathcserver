@@ -21,7 +21,12 @@ using RoadDirection = std::string;
 using RoadLength = double;
 using PointMap = std::map<PointUFI, PointUFI>;
 
-// using NearestRoadInfo = std::tuple<RoadUFI, RoadDirection, PointUFI, PointUFI, double, double, d_segment>;
+struct d_line_simple {
+    int roadufi;
+    int from_ufi;
+    int to_ufi;
+    g_line line;
+};
 
 struct nearest_road_info
 {
@@ -31,6 +36,18 @@ struct nearest_road_info
     PointUFI to_ufi;
     g_point closest_point;
     d_segment nearest_segment;
+};
+
+struct road_info
+{
+    RoadUFI road_ufi;
+    std::string ezi_road_name_label;
+    RoadDirection direction_code;
+    PointUFI from_ufi;
+    PointUFI to_ufi;
+    RoadLength road_length_meters;
+    g_line line;
+    bool reversed = false;
 };
 
 
@@ -53,16 +70,6 @@ struct next_step_final
     double road_length = 0.0;
     d_line_simple l;
 };
-
-
-// using Path = std::vector<d_line_simple>;
-
-// using PathRoadInfo = std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>;
-
-// typedef std::vector<Neighbor> NeighborList;
-// typedef std::map<PointUFI, NeighborList> NeighborMap;
-
-
 
 class SearchGraph {
 
@@ -95,7 +102,7 @@ public:
 
     std::pair<std::vector<d_line_simple>, RoadLength> search_path(double lon1, double lat1, double lon2, double lat2);
 
-    std::vector<std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>> get_path_info(const std::vector<d_line_simple> &path);
+    std::vector<road_info> get_path_info(const std::vector<d_line_simple> &path);
 
     void build();
 };

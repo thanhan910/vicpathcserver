@@ -90,6 +90,16 @@ double g_line::length() const
     return length;
 }
 
+g_line g_line::reverse() const
+{
+    g_line line;
+    for (int i = points.size() - 1; i >= 0; i--)
+    {
+        line.points.push_back(points[i]);
+    }
+    return line;
+}
+
 next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_on_line)
 {
     next_step_map next_steps;

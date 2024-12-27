@@ -188,20 +188,19 @@ void Server::handle_request(const http::request<http::string_body> &req, http::r
         {
             if (i > 0) path_str += ", ";
             auto road_info = path_info[i];
-            // std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>
-            int roadufi = std::get<0>(road_info);
-            // RoadUFI, std::string, RoadDirection, double, std::string
-            std::string ezi_road_name_label = std::get<1>(road_info);
-            RoadDirection direction_code = std::get<2>(road_info);
-            double road_length_meters = std::get<3>(road_info);
-            g_line geom = std::get<4>(road_info);
+            
             path_str += "{";
             // path_str +=  "\"roadufi\": " + std::to_string(roadufi) + ","; + "\"roadname\": " + ezi_road_name_label + "," + "\"direction\": " + direction_code + "," + "\"direction\": " + road_length_meters + "," + "\"geom\": " + geom + "}";
-            path_str +=  "\"ufi\": " + std::to_string(roadufi) + ",";
-            path_str += "\"ezi_road_name_label\": \"" + ezi_road_name_label + "\",";
-            path_str += "\"direction_code\": \"" + direction_code + "\",";
-            path_str += "\"road_length_meters\": " + std::to_string(road_length_meters) + ",";
+            path_str +=  "\"ufi\": " + std::to_string(road_info.road_ufi) + ",";
+            path_str += "\"ezi_road_name_label\": \"" + road_info.ezi_road_name_label + "\",";
+            path_str += "\"direction_code\": \"" + road_info.direction_code + "\",";
+            path_str += "\"road_length_meters\": " + std::to_string(road_info.road_length_meters) + ",";
+            path_str += "\"from_ufi\": " + std::to_string(road_info.from_ufi) + ",";
+            path_str += "\"to_ufi\": " + std::to_string(road_info.to_ufi) + ",";
+            path_str += "\"reversed\": " + std::to_string(road_info.reversed) + ",";
             path_str += "\"geom\": [";
+            
+            g_line geom = road_info.line;
             for (int j = 0; j < geom.points.size(); j++)
             {
                 if (j > 0) path_str += ", ";

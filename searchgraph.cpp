@@ -102,10 +102,7 @@ void SearchGraph::get_neighbors()
 
 double SearchGraph::heuristic(PointUFI current, PointUFI goal)
 {
-    auto [lon1, lat1] = points_coords[current];
-    auto [lon2, lat2] = points_coords[goal];
-    bg_point p1(lat1, lon1), p2(lat2, lon2);
-    return bg::distance(p1, p2) * 1000.0; // Convert to meters
+    return geo::distance(points_coords[current], points_coords[goal], STRATEGY_GEODESIC);
 }
 
 void SearchGraph::get_roads_info(std::vector<int> roadufi_list) {
@@ -122,13 +119,13 @@ void SearchGraph::get_roads_info(std::vector<int> roadufi_list) {
         return;
     }
     
-    std::string sql;
+    std::string sql = "SELECT ufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, road_length_meters, ST_AsText(geom) FROM vmtrans.tr_road_all WHERE ufi ";
     if (roadufis.size() == 1)
     {
-        sql = "SELECT ufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, ST_AsText(geom) FROM vmtrans.tr_road_all WHERE ufi = " + std::to_string(roadufis[0]) + ";";
+        sql += "= " + std::to_string(roadufis[0]) + ";";
     }
     else {
-        sql = "SELECT ufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, ST_AsText(geom) FROM vmtrans.tr_road_all WHERE ufi IN (";
+        sql += "IN (";
         for (int i = 0; i < roadufis.size(); i++)
         {
             sql += std::to_string(roadufis[i]);
@@ -149,8 +146,9 @@ void SearchGraph::get_roads_info(std::vector<int> roadufi_list) {
         RoadDirection direction_code = row[2].as<RoadDirection>();
         PointUFI from_ufi = row[3].as<PointUFI>();
         PointUFI to_ufi = row[4].as<PointUFI>();
-        std::string multiline_wkt = row[5].as<std::string>();
-        roads_info_map[road_ufi] = {road_ufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, g_line{multiline_wkt}};
+        double road_length_meters = row[5].as<double>();
+        std::string multiline_wkt = row[6].as<std::string>();
+        roads_info_map[road_ufi] = {road_ufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, road_length_meters, g_line{multiline_wkt}};
     }
 }
 
@@ -170,15 +168,6 @@ std::pair<next_step_map, PointMap> SearchGraph::gen_extra_info(nearest_road_info
 
     next_step_map special_neighbors = generate_next_steps(lines, points_on_line);
 
-    for (const auto &p : special_neighbors)
-    {
-        std::cout << "Point: " << p.first << std::endl;
-        for (const auto &n : p.second)
-        {
-            std::cout << "  Neighbor: " << n.next_point_ufi << ", Road: " << n.roadufi << ", Name: " << roads_info_map[n.roadufi].ezi_road_name_label << ", Direction: " << roads_info_map[n.roadufi].direction_code << ", Length: " << n.line.length() << std::endl;
-        }
-    }
-
     PointMap skip_neighbors = {
         {start.from_ufi, start.to_ufi},
         {start.to_ufi, start.from_ufi},
@@ -189,7 +178,6 @@ std::pair<next_step_map, PointMap> SearchGraph::gen_extra_info(nearest_road_info
     return {special_neighbors, skip_neighbors};
 }
 
-// using FrontierItem = std::tuple<double, double, PointUFI, std::vector<d_line_simple>>;
 
 struct FrontierItem {
     double f;
@@ -241,7 +229,7 @@ std::pair<std::vector<d_line_simple>, RoadLength> SearchGraph::astar(PointUFI st
             for (const auto &p : neighbors_map[current_pointufi])
             {
                 neighbor_points.push_back(
-                    {p.next_point_ufi, p.road_length, {p.road_ufi, {}}}
+                    {p.next_point_ufi, p.road_length, {p.road_ufi, current_pointufi, p.next_point_ufi, {}}}
                 );
             }
         }
@@ -250,7 +238,7 @@ std::pair<std::vector<d_line_simple>, RoadLength> SearchGraph::astar(PointUFI st
             for (const auto &p : special_neighbors[current_pointufi])
             {
                 neighbor_points.push_back(
-                    {p.next_point_ufi, p.line.length(), {p.roadufi, p.line}}
+                    {p.next_point_ufi, p.line.length(), {p.roadufi, current_pointufi, p.next_point_ufi, p.line}}
                 );
             }
         }
@@ -312,7 +300,7 @@ std::pair<std::vector<d_line_simple>, RoadLength> SearchGraph::search_path(doubl
 }
 
 
-std::vector<std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>> SearchGraph::get_path_info(const std::vector<d_line_simple> &path)
+std::vector<road_info> SearchGraph::get_path_info(const std::vector<d_line_simple> &path)
 {
     std::vector<int> roadufis = {};
     for (const auto &line : path)
@@ -322,32 +310,37 @@ std::vector<std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>> Sea
 
     get_roads_info(roadufis);
 
-    std::vector<std::tuple<RoadUFI, std::string, RoadDirection, double, g_line>> roads_info;
+    std::vector<road_info> roads_info;
+    int prev_to_ufi = START_POINT_UFI;
     for (const auto &line : path)
     {
-        if (line.line.points.size() == 0)
+        int roadufi = line.roadufi;
+        std::string ezi_road_name_label = roads_info_map[line.roadufi].ezi_road_name_label;
+        std::string direction_code = roads_info_map[line.roadufi].direction_code;
+        double road_length_meters = roads_info_map[line.roadufi].road_length_meters;
+        g_line geom = roads_info_map[line.roadufi].line;
+        int from_ufi = roads_info_map[line.roadufi].from_ufi;
+        int to_ufi = roads_info_map[line.roadufi].to_ufi;
+        if (line.line.points.size() > 0)
         {
-            roads_info.push_back(
-                std::make_tuple(
-                    line.roadufi,
-                    roads_info_map[line.roadufi].ezi_road_name_label,
-                    roads_info_map[line.roadufi].direction_code,
-                    roads_info_map[line.roadufi].line.length(),
-                    roads_info_map[line.roadufi].line
-                )
-            );
+            road_length_meters = line.line.length();
+            geom = line.line;
+            from_ufi = line.from_ufi;
+            to_ufi = line.to_ufi;
+        }
+        bool reversed = false;
+        g_line geom_line;
+        if (to_ufi == prev_to_ufi)
+        {
+            geom_line = geom.reverse();
+            reversed = true;
+            prev_to_ufi = from_ufi;
         }
         else {
-            roads_info.push_back(
-                std::make_tuple(
-                    line.roadufi,
-                    roads_info_map[line.roadufi].ezi_road_name_label,
-                    roads_info_map[line.roadufi].direction_code,
-                    line.line.length(),
-                    line.line
-                )
-            );
+            geom_line = geom;
+            prev_to_ufi = to_ufi;
         }
+        roads_info.push_back({roadufi, ezi_road_name_label, direction_code, from_ufi, to_ufi, road_length_meters, geom_line, reversed});
     }
 
     return roads_info;

@@ -28,11 +28,16 @@ pkg_check_modules(LIBMONGOCXX REQUIRED libmongocxx-static)
 # Collect all source files recursively
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/*.cpp")
 
-# # Filter out files in the CMakeFiles directory
+# Filter out files in the CMakeFiles directory
 # list(FILTER SOURCES EXCLUDE REGEX ".*CMakeFiles/.*")
-
-# Filter out files in the build directory
+# list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
+# Filter out files in the build directory, CMakeFiles directory, vcpkg directory, and other build-related directories
+list(FILTER SOURCES EXCLUDE REGEX ".*CMakeFiles/.*")
 list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*vcpkg/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*build/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*cmake/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*venv/.*")
 
 # Define the executable
 add_executable(local-server ${SOURCES})

@@ -9,6 +9,7 @@ struct g_line {
     g_line(const std::vector<g_point> &points) : points{points} {};
     g_line(const std::string &wkt);
     double length() const;
+    g_line reverse() const;
 };
 
 struct d_point_on_line
@@ -32,11 +33,6 @@ using next_step_map = std::map<int, std::vector<next_step>>;
 #define DIRECTION_REVERSE "R"
 #define DIRECTION_BOTH "B"
 
-struct d_line_simple {
-    int roadufi;
-    g_line line;
-};
-
 struct d_line
 {
     int roadufi;
@@ -44,6 +40,7 @@ struct d_line
     std::string direction_code;
     int from_ufi;
     int to_ufi;
+    double road_length_meters;
     g_line line;
     next_step_map generate_next_steps(std::vector<d_point_on_line> &points_on_line);
 };
