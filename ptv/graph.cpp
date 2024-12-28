@@ -11,6 +11,7 @@
 struct Node {
     virtual ~Node() = default;
     virtual void print() const = 0;
+    virtual double getHeuristic(const Node& other) const { return 0; } // Default heuristic
 };
 
 // Edge base class
@@ -60,8 +61,7 @@ public:
     }
 
     // A* Search Algorithm
-    std::vector<int> aStarSearch(int start, int goal,
-                                 std::function<double(const NodePtr&, const NodePtr&)> heuristic) const {
+    std::vector<int> aStarSearch(int start, int goal) const {
         struct NodeRecord {
             int id;
             double cost; // f(n) = g(n) + h(n)
@@ -77,7 +77,7 @@ public:
 
         // Initialize
         gScore[start] = 0;
-        openSet.push({start, heuristic(getNode(start), getNode(goal))});
+        openSet.push({start, getNode(start)->getHeuristic(*getNode(goal))});
 
         while (!openSet.empty()) {
             int current = openSet.top().id;
@@ -93,7 +93,7 @@ public:
                 double tentativeGScore = gScore[current] + edge->getCost();
                 if (tentativeGScore < gScore[neighbor] || !gScore.count(neighbor)) {
                     gScore[neighbor] = tentativeGScore;
-                    double fScore = tentativeGScore + heuristic(getNode(neighbor), getNode(goal));
+                    double fScore = tentativeGScore + getNode(neighbor)->getHeuristic(*getNode(goal));
                     openSet.push({neighbor, fScore});
                     cameFrom[neighbor] = current;
                 }
@@ -131,6 +131,14 @@ struct LocationNode : public Node {
     void print() const override {
         std::cout << "LocationNode [Name: " << name << ", Coordinates: (" << x << ", " << y << ")]\n";
     }
+
+    double getHeuristic(const Node& other) const override {
+        auto loc = dynamic_cast<const LocationNode*>(&other);
+        if (loc) {
+            return std::sqrt(std::pow(x - loc->x, 2) + std::pow(y - loc->y, 2));
+        }
+        return 0;
+    }
 };
 
 // TrafficNode with traffic delay
@@ -144,6 +152,14 @@ struct TrafficNode : public Node {
     void print() const override {
         std::cout << "TrafficNode [Name: " << name << ", Traffic Delay: " << trafficDelay << " mins]\n";
     }
+
+    double getHeuristic(const Node& other) const override {
+        auto traffic = dynamic_cast<const TrafficNode*>(&other);
+        if (traffic) {
+            return std::abs(trafficDelay - traffic->trafficDelay);
+        }
+        return 0;
+    }
 };
 
 // WeatherNode with temperature
@@ -156,6 +172,14 @@ struct WeatherNode : public Node {
 
     void print() const override {
         std::cout << "WeatherNode [Name: " << name << ", Temperature: " << temperature << "\u00b0C]\n";
+    }
+
+    double getHeuristic(const Node& other) const override {
+        auto weather = dynamic_cast<const WeatherNode*>(&other);
+        if (weather) {
+            return std::abs(temperature - weather->temperature);
+        }
+        return 0;
     }
 };
 
@@ -198,36 +222,6 @@ struct TollEdge : public Edge {
     }
 };
 
-// Heuristic function for LocationNode using Euclidean distance
-double locationHeuristic(const Graph::NodePtr& a, const Graph::NodePtr& b) {
-    auto locA = std::dynamic_pointer_cast<LocationNode>(a);
-    auto locB = std::dynamic_pointer_cast<LocationNode>(b);
-    if (locA && locB) {
-        return std::sqrt(std::pow(locA->x - locB->x, 2) + std::pow(locA->y - locB->y, 2));
-    }
-    return std::numeric_limits<double>::infinity();
-}
-
-// Heuristic function for TrafficNode based on traffic delay difference
-double trafficHeuristic(const Graph::NodePtr& a, const Graph::NodePtr& b) {
-    auto trafficA = std::dynamic_pointer_cast<TrafficNode>(a);
-    auto trafficB = std::dynamic_pointer_cast<TrafficNode>(b);
-    if (trafficA && trafficB) {
-        return std::abs(trafficA->trafficDelay - trafficB->trafficDelay);
-    }
-    return std::numeric_limits<double>::infinity();
-}
-
-// Heuristic function for WeatherNode based on temperature difference
-double weatherHeuristic(const Graph::NodePtr& a, const Graph::NodePtr& b) {
-    auto weatherA = std::dynamic_pointer_cast<WeatherNode>(a);
-    auto weatherB = std::dynamic_pointer_cast<WeatherNode>(b);
-    if (weatherA && weatherB) {
-        return std::abs(weatherA->temperature - weatherB->temperature);
-    }
-    return std::numeric_limits<double>::infinity();
-}
-
 int main() {
     Graph graph;
 
@@ -241,7 +235,7 @@ int main() {
     graph.addEdge(2, 3, std::make_shared<TollEdge>(2.5));  // $2.50 toll
 
     // Perform A* Search
-    auto path = graph.aStarSearch(1, 3, locationHeuristic);
+    auto path = graph.aStarSearch(1, 3);
 
     std::cout << "Path found: ";
     for (int node : path) {
