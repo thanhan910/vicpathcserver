@@ -13,89 +13,11 @@ struct Node {
     virtual void print() const = 0;
 };
 
-// LocationNode with coordinates
-struct LocationNode : public Node {
-    std::string name;
-    double x, y;
-
-    LocationNode(const std::string& name, double x, double y)
-        : name(name), x(x), y(y) {}
-
-    void print() const override {
-        std::cout << "LocationNode [Name: " << name << ", Coordinates: (" << x << ", " << y << ")]\n";
-    }
-};
-
-// TrafficNode with traffic delay
-struct TrafficNode : public Node {
-    std::string name;
-    int trafficDelay; // in minutes
-
-    TrafficNode(const std::string& name, int trafficDelay)
-        : name(name), trafficDelay(trafficDelay) {}
-
-    void print() const override {
-        std::cout << "TrafficNode [Name: " << name << ", Traffic Delay: " << trafficDelay << " mins]\n";
-    }
-};
-
-// WeatherNode with temperature
-struct WeatherNode : public Node {
-    std::string name;
-    double temperature; // in Celsius
-
-    WeatherNode(const std::string& name, double temperature)
-        : name(name), temperature(temperature) {}
-
-    void print() const override {
-        std::cout << "WeatherNode [Name: " << name << ", Temperature: " << temperature << "\u00b0C]\n";
-    }
-};
-
 // Edge base class
 struct Edge {
     virtual ~Edge() = default;
     virtual double getCost() const = 0;
     virtual void print() const = 0;
-};
-
-// WeightedEdge with cost
-struct WeightedEdge : public Edge {
-    double weight;
-
-    WeightedEdge(double weight) : weight(weight) {}
-
-    double getCost() const override { return weight; }
-
-    void print() const override {
-        std::cout << "WeightedEdge [Weight: " << weight << "]\n";
-    }
-};
-
-// TimedEdge with time in seconds
-struct TimedEdge : public Edge {
-    int time; // in seconds
-
-    TimedEdge(int time) : time(time) {}
-
-    double getCost() const override { return static_cast<double>(time); }
-
-    void print() const override {
-        std::cout << "TimedEdge [Time: " << time << " seconds]\n";
-    }
-};
-
-// TollEdge with toll cost
-struct TollEdge : public Edge {
-    double toll;
-
-    TollEdge(double toll) : toll(toll) {}
-
-    double getCost() const override { return toll; }
-
-    void print() const override {
-        std::cout << "TollEdge [Toll: $" << toll << "]\n";
-    }
 };
 
 // Graph class with edge state management
@@ -195,6 +117,84 @@ private:
         path.push_back(current);
         std::reverse(path.begin(), path.end());
         return path;
+    }
+};
+
+// LocationNode with coordinates
+struct LocationNode : public Node {
+    std::string name;
+    double x, y;
+
+    LocationNode(const std::string& name, double x, double y)
+        : name(name), x(x), y(y) {}
+
+    void print() const override {
+        std::cout << "LocationNode [Name: " << name << ", Coordinates: (" << x << ", " << y << ")]\n";
+    }
+};
+
+// TrafficNode with traffic delay
+struct TrafficNode : public Node {
+    std::string name;
+    int trafficDelay; // in minutes
+
+    TrafficNode(const std::string& name, int trafficDelay)
+        : name(name), trafficDelay(trafficDelay) {}
+
+    void print() const override {
+        std::cout << "TrafficNode [Name: " << name << ", Traffic Delay: " << trafficDelay << " mins]\n";
+    }
+};
+
+// WeatherNode with temperature
+struct WeatherNode : public Node {
+    std::string name;
+    double temperature; // in Celsius
+
+    WeatherNode(const std::string& name, double temperature)
+        : name(name), temperature(temperature) {}
+
+    void print() const override {
+        std::cout << "WeatherNode [Name: " << name << ", Temperature: " << temperature << "\u00b0C]\n";
+    }
+};
+
+// WeightedEdge with cost
+struct WeightedEdge : public Edge {
+    double weight;
+
+    WeightedEdge(double weight) : weight(weight) {}
+
+    double getCost() const override { return weight; }
+
+    void print() const override {
+        std::cout << "WeightedEdge [Weight: " << weight << "]\n";
+    }
+};
+
+// TimedEdge with time in seconds
+struct TimedEdge : public Edge {
+    int time; // in seconds
+
+    TimedEdge(int time) : time(time) {}
+
+    double getCost() const override { return static_cast<double>(time); }
+
+    void print() const override {
+        std::cout << "TimedEdge [Time: " << time << " seconds]\n";
+    }
+};
+
+// TollEdge with toll cost
+struct TollEdge : public Edge {
+    double toll;
+
+    TollEdge(double toll) : toll(toll) {}
+
+    double getCost() const override { return toll; }
+
+    void print() const override {
+        std::cout << "TollEdge [Toll: $" << toll << "]\n";
     }
 };
 
