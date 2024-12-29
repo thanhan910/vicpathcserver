@@ -6,6 +6,7 @@
 #include <functional>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 // Node base class
 struct Node {
@@ -77,7 +78,9 @@ public:
 
         // Initialize
         gScore[start] = 0;
-        openSet.push({start, getNode(start)->getHeuristic(*getNode(goal))});
+        double startHeuristic = getNode(start)->getHeuristic(*getNode(goal));
+        std::cout << "Start Heuristic: " << startHeuristic << "\n";
+        openSet.push({start, startHeuristic});
 
         while (!openSet.empty()) {
             int current = openSet.top().id;
