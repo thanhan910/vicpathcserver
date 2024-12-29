@@ -225,7 +225,7 @@ struct TollEdge : public Edge {
     }
 };
 
-int main() {
+int main_sample() {
     Graph graph;
 
     // Add nodes
