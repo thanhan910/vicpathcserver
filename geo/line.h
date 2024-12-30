@@ -3,6 +3,12 @@
 #include "geo.h"
 #include <map>
 
+struct g_point_on_line
+{
+    g_point point;
+    int pos;
+};
+
 struct g_line {
     std::vector<g_point> points;
     g_line() = default;
@@ -10,6 +16,7 @@ struct g_line {
     g_line(const std::string &wkt);
     double length() const;
     g_line reverse() const;
+    std::vector<g_line> split_line(std::vector<g_point_on_line> &points_on_line);
 };
 
 struct d_point_on_line

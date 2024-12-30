@@ -100,6 +100,61 @@ g_line g_line::reverse() const
     return line;
 }
 
+std::vector<g_line> g_line::split_line(std::vector<g_point_on_line> &points_on_line)
+{
+    std::vector<g_line> splitted_lines;
+    std::sort(points_on_line.begin(), points_on_line.end(), [this](const d_point_on_line &a, const d_point_on_line &b) {
+        if (a.pos == b.pos)
+        {
+            g_point& p1 = points[a.pos];
+            g_point& p2 = points[a.pos + 1];
+            if (p1.x == p2.x)
+            {
+                return (p1.y < p2.y) ? a.point.y < b.point.y : a.point.y > b.point.y;
+            }
+            else
+            {
+                return (p1.x < p2.x) ? a.point.x < b.point.x : a.point.x > b.point.x;
+            }
+        }
+        else
+        {
+            return a.pos < b.pos;
+        }
+    });
+    if (true)
+    {
+        g_line newline0;
+        for (int j = 0; j <= points_on_line[0].pos; j++)
+        {
+            newline0.points.push_back(points[j]);
+        }
+        newline0.points.push_back(points_on_line[0].point);
+        splitted_lines.push_back(newline0);
+        
+        for (int i = 0; i < points_on_line.size() - 1; i++)
+        {
+            g_line newline;
+            newline.points.push_back(points_on_line[i].point);
+            for (int j = points_on_line[i].pos + 1; j <= points_on_line[i + 1].pos; j++)
+            {
+                newline.points.push_back(points[j]);
+            }
+            newline.points.push_back(points_on_line[i + 1].point);
+            splitted_lines.push_back(newline);
+        }
+
+        g_line newline1;
+        for (int j = points_on_line[points_on_line.size() - 1].pos; j < points.size(); j++)
+        {
+            newline1.points.push_back(points[j]);
+        }
+        splitted_lines.push_back(newline1);
+    }
+    
+    return splitted_lines;
+}
+
 next_step_map d_line::generate_next_steps(std::vector<d_point_on_line> &points_on_line)
 {
     next_step_map next_steps;
