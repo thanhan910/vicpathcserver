@@ -100,6 +100,134 @@ void SearchGraph::get_neighbors()
 //     return bg::distance(p1, p2) * 1000.0; // Convert to meters
 // }
 
+void SearchGraph::build_reg_road_points() 
+{
+    // Populate the points_coords and neighbors collections from MongoDB (similar to Python code)
+    // Initialize MongoDB instance and client
+
+    mongocxx::collection points_collection = db["points"];
+
+    // Vector to store documents from MongoDB
+    std::vector<bsoncxx::document::value> points_coords_mongo_get;
+
+    // Get the estimated document count
+    auto collection_count = points_collection.estimated_document_count();
+
+    // Iterate over the collection and append documents to the vector
+    for (auto &&doc : points_collection.find({}))
+    {
+        points_coords_mongo_get.push_back(bsoncxx::document::value(doc));
+    }
+
+    reg_points[enum_point_type::ROADPOINT] = {};
+
+    // Convert BSON documents to the desired map structure
+    for (const auto &doc : points_coords_mongo_get)
+    {
+        auto view = doc.view();
+        PointUFI id = view["_id"].get_int32().value;
+        bsoncxx::array::view coordinates_tuple = view["coords"].get_array().value;
+        g_point coordinates = {coordinates_tuple[0].get_double(), coordinates_tuple[1].get_double()};
+
+        reg_points[enum_point_type::ROADPOINT][id] = coordinates;
+    }
+};
+
+void SearchGraph::build_reg_road_next_points() 
+{
+    // Initialize MongoDB instance and client
+
+    mongocxx::collection neighbours_collection = db["points_neighbours"];
+
+    // Vector to store documents from MongoDB
+    std::vector<bsoncxx::document::value> neighbors_mongo;
+
+    // // Get the estimated document count
+    // auto collection_count = neighbours_collection.estimated_document_count();
+
+    // Iterate over the collection and append documents to the vector
+    for (auto &&doc : neighbours_collection.find({}))
+    {
+        neighbors_mongo.push_back(bsoncxx::document::value(doc));
+    }
+
+    reg_next_points[enum_point_type::ROADPOINT] = {};
+
+    // Convert BSON documents to the desired map structure
+    for (const auto &doc : neighbors_mongo)
+    {
+        auto view = doc.view();
+        int id = view["_id"].get_int32().value;
+
+        std::vector<next_dt_point_edge> neighbor_list;
+
+        for (const auto &neighbor : view["neighbours"].get_array().value)
+        {
+            auto neighbor_view = neighbor.get_array().value;
+            PointUFI neighbor_ufi = neighbor_view[0].get_int32().value;
+            RoadUFI road_ufi = neighbor_view[1].get_int32().value;
+            RoadLength neighbor_distance = neighbor_view[2].get_double().value;
+            struct next_dt_point_edge {
+                dt_point_key next_point_key;
+                int road_ufi = -1;
+                double distance_meter = 0.0;
+                g_line line = {};
+            };
+            neighbor_list.push_back({
+                {
+                    enum_point_type::ROADPOINT,
+                    neighbor_ufi
+                }, 
+                road_ufi, 
+                neighbor_distance,
+                {}
+            });
+        }
+
+        reg_next_points[enum_point_type::ROADPOINT][id] = neighbor_list;
+    }
+};
+
+void SearchGraph::build_reg_stop_points()
+{
+
+    reg_points[enum_point_type::STOP] = {};    
+    // Get all stops from PostgreSQL tables stops in schemas gtfs_1, gtfs_2, gtfs_3, gtfs_4, gtfs_5 ...
+    
+    std::vector<int> schema_ids = {1, 2, 3, 4, 5, 6, 10, 11};
+    for (int gtfs_mode_id : schema_ids)
+    {
+        std::string schema_name = "gtfs_" + std::to_string(gtfs_mode_id);
+        std::string sql = "SELECT stop_id, stop_lat, stop_lon FROM " + schema_name + ".stops;";
+        pqxx::work txn(conn);
+        pqxx::result result = txn.exec(sql);
+        for (auto row : result)
+        {
+            int stop_id = row[0].as<int>();
+            double stop_lat = row[1].as<double>();
+            double stop_lon = row[2].as<double>();
+            reg_points[enum_point_type::STOP][stop_id] = g_point{stop_lon, stop_lat};
+        }
+    }
+}
+
+void SearchGraph::build_reg_stop_next_points()
+{
+    std::unordered_map<int, d_point_on_line> stop_nearest_segment_point_map = {};
+    std::unordered_map<int, AnswerNearestSegment> stop_nearest_segment_map = {};
+    std::vector<int> stop_nearest_road_ufi;
+    for (auto& [stop_id, stop_point] : reg_points[enum_point_type::STOP]) {
+        stop_nearest_segment_map[stop_id] = nearest quadtree.find_nearest_segment(stop_point);
+        stop_nearest_road_ufi.push_back(stop_nearest_segment_map[stop_id].segment.roadufi);
+    }
+    generate_next_steps();
+}
+
+void SearchGraph::build_data_structures()
+{
+    
+}
+
 double SearchGraph::heuristic(PointUFI current, PointUFI goal)
 {
     return geo::distance(points_coords[current], points_coords[goal], STRATEGY_GEODESIC);

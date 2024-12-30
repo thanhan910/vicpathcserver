@@ -71,6 +71,46 @@ struct next_step_final
     d_line_simple l;
 };
 
+enum enum_point_type {
+    UNKNOWN = 0,
+    ROADPOINT = 1,
+    STOP = 2
+};
+
+struct dt_point_key {
+    enum_point_type point_type = UNKNOWN;
+    int point_id = 0;
+};
+struct next_dt_point_edge {
+    dt_point_key next_point_key;
+    int road_ufi = -1;
+    double distance_meter = 0.0;
+    g_line line = {};
+};
+struct pt_stop_time {
+    int stop_id;
+    int gtfs_mode_id;
+    std::string trip_id;
+    std::string arrival_time;
+    std::string departure_time;
+    int stop_sequence;
+    int next_stop_sequence;
+};
+
+struct pt_stop_time_data {
+    std::string arrival_time;
+    std::string departure_time;
+};
+
+using t_reg_dt_point_single = std::unordered_map<int, g_point>;
+using t_reg_dt_point_all = std::unordered_map<enum_point_type, t_reg_dt_point_single>;
+
+using t_reg_next_dt_point_single = std::unordered_map<int, std::vector<next_dt_point_edge>>;
+using t_reg_next_dt_point_all = std::unordered_map<enum_point_type, t_reg_next_dt_point_single>;
+
+using t_reg_pt_stop_stop_times = std::unordered_map<int, std::vector<pt_stop_time>>;
+using t_reg_pt_stop_times = std::unordered_map<std::string, std::map<int, pt_stop_time>>;
+
 class SearchGraph {
 
 private:
@@ -85,6 +125,17 @@ private:
     void get_points();
     void get_neighbors();
     void get_roads_info(std::vector<int> roadufis);
+
+    t_reg_dt_point_all reg_points;
+    t_reg_next_dt_point_all reg_next_points;
+    t_reg_pt_stop_stop_times reg_stop_times;
+    t_reg_pt_stop_times reg_next_stop_times;
+
+    void build_reg_road_points();
+    void build_reg_road_next_points();
+    void build_reg_stop_points();
+    void build_reg_stop_next_points();
+    void build_data_structures();
     
     double heuristic(PointUFI current, PointUFI goal);
 
